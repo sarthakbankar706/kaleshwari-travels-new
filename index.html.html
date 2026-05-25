@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="8CN0BITb7EebMXAO0siIcyjZEMgw6W17JQKE0krvEEk" />
+    <title>काळेश्वरी ट्रॅव्हलर - Car Rental</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <span>काळेश्वरी ट्रॅव्हलर</span>
+            </div>
+            <div class="header-buttons">
+                <a href="tel:+919999999999" class="contact-btn">
+                    <i class="fas fa-phone"></i>
+                    <span id="headerPhone">+91 99999 99999</span>
+                </a>
+                <div class="menu-container">
+                    <button class="menu-btn" onclick="toggleMenu()" aria-label="Menu">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="/admin-login.html"><i class="fas fa-lock"></i> Admin Panel</a>
+                        <a href="#" onclick="shareWebsiteLink()"><i class="fas fa-share-alt"></i> शेअर करा</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>सर्वोत्तम कार भाड्याची सेवा</h1>
+            <p>विश्वासार्ह, सुरक्षित आणि आरामदायक प्रवास</p>
+            <a href="#cars" class="btn">गाड्या पहा</a>
+        </div>
+    </section>
+
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2>संपर्क करा</h2>
+            <div class="contact-card">
+                <i class="fas fa-phone-alt"></i>
+                <div>
+                    <h3>फोन नंबर</h3>
+                    <p id="mainPhone">+91 99999 99999</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="cars" class="cars-section">
+        <div class="container">
+            <h2>आमच्या गाड्या</h2>
+            <div class="cars-grid" id="carsGrid">
+                <div class="car-card">
+                    <div class="car-image">
+                        <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400" alt="Premium Sedan">
+                    </div>
+                    <div class="car-info">
+                        <h3>प्रीमियम सेडान</h3>
+                        <p class="car-price">₹1500/तास</p>
+                        <a href="tel:+919999999999" class="book-btn">बुक करा</a>
+                    </div>
+                </div>
+                <div class="car-card">
+                    <div class="car-image">
+                        <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400" alt="SUV">
+                    </div>
+                    <div class="car-info">
+                        <h3>एसयूव्ही</h3>
+                        <p class="car-price">₹2000/तास</p>
+                        <a href="tel:+919999999999" class="book-btn">बुक करा</a>
+                    </div>
+                </div>
+                <div class="car-card">
+                    <div class="car-image">
+                        <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400" alt="Luxury Car">
+                    </div>
+                    <div class="car-info">
+                        <h3>लक्झरी कार</h3>
+                        <p class="car-price">₹3000/तास</p>
+                        <a href="tel:+919999999999" class="book-btn">बुक करा</a>
+                    </div>
+                </div>
+                <div class="car-card">
+                    <div class="car-image">
+                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400" alt="Sports Car">
+                    </div>
+                    <div class="car-info">
+                        <h3>स्पोर्ट्स कार</h3>
+                        <p class="car-price">₹4000/तास</p>
+                        <a href="tel:+919999999999" class="book-btn">बुक करा</a>
+                    </div>
+                </div>
+                <div class="car-card">
+                    <div class="car-image">
+                        <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400" alt="Mini Van">
+                    </div>
+                    <div class="car-info">
+                        <h3>मिनी व्हॅन</h3>
+                        <p class="car-price">₹1200/तास</p>
+                        <a href="tel:+919999999999" class="book-btn">बुक करा</a>
+                    </div>
+                </div>
+                <div class="car-card">
+                    <div class="car-image">
+                        <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399?w=400" alt="Tempo Traveller">
+                    </div>
+                    <div class="car-info">
+                        <h3>टेम्पो ट्रॅव्हलर</h3>
+                        <p class="car-price">₹2500/तास</p>
+                        <a href="tel:+919999999999" class="book-btn">बुक करा</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="ads" class="ads-section">
+        <div class="container">
+            <h2>जाहिराती</h2>
+            <div class="ads-grid" id="adsGrid">
+                <div class="ad-card">
+                    <div class="ad-content">
+                        <i class="fas fa-ad"></i>
+                        <h3>आपली जाहिरात येथे</h3>
+                        <p>आमच्या वेबसाइटवर जाहिरात द्या</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 काळेश्वरी ट्रॅव्हलर. सर्व rights reserved.</p>
+            <p class="admin-link"><a href="/admin-login.html">Admin Panel</a></p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

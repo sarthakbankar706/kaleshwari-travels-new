@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - काळेश्वरी ट्रॅव्हलर</title>
+    <meta name="google-site-verification" content="8CN0BITb7EebMXAO0siIcyjZEMgw6W17JQKE0krvEEk" />
+    <link rel="stylesheet" href="admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        .upload-area:hover {
+            border-color: #e63946;
+            background: rgba(230, 57, 70, 0.05);
+        }
+        .upload-area i {
+            font-size: 2rem;
+            color: #457b9d;
+            margin-bottom: 10px;
+        }
+        .upload-area p {
+            color: #ccc;
+            margin: 0;
+        }
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        .preview-img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .mobile-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mobile-input i {
+            color: #2ecc71;
+            font-size: 1.2rem;
+        }
+        .car-mobile {
+            font-size: 0.85rem;
+            color: #2ecc71;
+            margin-top: 5px;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+        .loading-overlay.show {
+            display: flex;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid #e63946;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1><i class="fas fa-cog"></i> Admin Panel</h1>
+            <div class="header-actions">
+                <span id="adminUser" class="user-name"><i class="fas fa-user"></i> Admin</span>
+                <a href="index.html" class="back-btn"><i class="fas fa-home"></i> होम</a>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> लॉगआउट</button>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <div class="section-card">
+                <h2><i class="fas fa-phone"></i> मुख्य फोन नंबर</h2>
+                <div class="form-group">
+                    <label>फोन नंबर</label>
+                    <input type="tel" id="phoneInput" placeholder="+91 99999 99999">
+                    <button class="save-btn" onclick="savePhone()">सेव करा</button>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-car"></i> गाड्यांचे फोटो आणि माहिती</h2>
+                <div id="carsList" class="items-list"></div>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-ad"></i> जाहिरात जोडा</h2>
+                <div class="form-group">
+                    <label>जाहिरात शीर्षक</label>
+                    <input type="text" id="adTitle" placeholder="जाहिरात शीर्षक">
+                </div>
+                <div class="form-group">
+                    <label>जाहिरात माहिती</label>
+                    <textarea id="adDescription" placeholder="जाहिरात माहिती"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>जाहिरात फोटो URL</label>
+                    <input type="url" id="adImage" placeholder="https://example.com/image.jpg">
+                </div>
+                <button class="save-btn" onclick="saveAd()">जाहिरात सेव करा</button>
+            </div>
+
+            <div class="section-card">
+                <h2><i class="fas fa-undo"></i> डेटा रीसेट करा</h2>
+                <p class="info-text">हे बटण क्लिक केल्यास सर्व डेटा मूलभूत सेटिंग्जवर रीसेट होईल.</p>
+                <button class="reset-btn" onclick="resetData()">रीसेट करा</button>
+            </div>
+        </div>
+
+        <div id="toast" class="toast">बदल सफलतापूर्वक सेव झाले!</div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let token = localStorage.getItem('adminToken');
+        let currentData = null;
+        let isLoading = false;
+        
+        if (!token) {
+            window.location.href = 'admin-login.html';
+        }
+
+        function showLoading() {
+            isLoading = true;
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            isLoading = false;
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        async function loadData() {
+            if (isLoading) return;
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/api/data`);
+                if (!response.ok) throw new Error('Failed to load data');
+                currentData = await response.json();
+                document.getElementById('phoneInput').value = currentData.phone;
+                renderCars(currentData.cars);
+            } catch (err) {
+                showToast('डेटा लोड करण्यात अयशस्वी: ' + err.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderCars(cars) {
+            const list = document.getElementById('carsList');
+            list.innerHTML = cars.map(car => `
+                <div class="item-card">
+                    ${car.image ? `<img src="${car.image}" alt="${car.name}">` : '<div class="no-img"><i class="fas fa-image"></i></div>'}
+                    <div class="item-info">
+                        <h3>${car.name}</h3>
+                        <p>${car.price}</p>
+                        ${car.mobile ? `<p class="car-mobile"><i class="fas fa-phone"></i> ${car.mobile}</p>` : ''}
+                    </div>
+                    <button class="edit-btn" onclick="openEditCar(${car.id})">
+                        <i class="fas fa-edit"></i> बदला
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function savePhone() {
+            const phone = document.getElementById('phoneInput').value;
+            if (!phone) {
+                showToast('कृपया फोन नंबर भरा!', 'error');
+                return;
+            }
+            
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/api/admin/phone`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ phone })
+                });
+                
+                if (response.ok) {
+                    showToast('फोन नंबर सफलतापूर्वक बदलला!');
+                    await loadData();
+                } else {
+                    const err = await response.json();
+                    showToast(err.error || 'एरर आली', 'error');
+                }
+            } catch (err) {
+                showToast('नेटवर्क एरर: ' + err.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function saveAd() {
+            const title = document.getElementById('adTitle').value;
+            const description = document.getElementById('adDescription').value;
+            const image = document.getElementById('adImage').value;
+            
+            if (!title) {
+                showToast('कृपया जाहिरात शीर्षक भरा!', 'error');
+                return;
+            }
+            
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/api/admin/ads`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, description, image })
+                });
+                
+                if (response.ok) {
+                    showToast('जाहिरात सफलतापूर्वक जोडली!');
+                    clearAdForm();
+                    await loadData();
+                } else {
+                    const err = await response.json();
+                    showToast(err.error || 'एरर आली', 'error');
+                }
+            } catch (err) {
+                showToast('नेटवर्क एरर: ' + err.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function clearAdForm() {
+            document.getElementById('adTitle').value = '';
+            document.getElementById('adDescription').value = '';
+            document.getElementById('adImage').value = '';
+        }
+
+        async function openEditCar(id) {
+            if (isLoading) return;
+            
+            // Check if modal already exists
+            const existingModal = document.querySelector('.modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            if (!currentData) {
+                showToast('डेटा लोड होत आहे, कृपया वाट पहा', 'error');
+                return;
+            }
+            
+            const car = currentData.cars.find(c => c.id === id);
+            if (!car) {
+                showToast('गाडी सापडली नाही', 'error');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3><i class="fas fa-car"></i> गाडी बदला</h3>
+                    <div class="form-group">
+                        <label>गाडीचे नाव</label>
+                        <input type="text" id="editCarName" value="${car.name}">
+                    </div>
+                    <div class="form-group">
+                        <label>किंमत</label>
+                        <input type="text" id="editCarPrice" value="${car.price}">
+                    </div>
+                    <div class="form-group">
+                        <label>मोबाईल नंबर</label>
+                        <div class="mobile-input">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="editCarMobile" value="${car.mobile || ''}" placeholder="+91 99999 99999" style="flex: 1;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>फोटो अपलोड करा</label>
+                        <div class="upload-area" onclick="document.getElementById('photoUpload').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>फोटो निवडण्यासाठी क्लिक करा</p>
+                            <input type="file" id="photoUpload" accept="image/*" onchange="previewPhoto(this)">
+                        </div>
+                        <img id="photoPreview" class="preview-img" style="display: ${car.image ? 'block' : 'none'}" src="${car.image || ''}">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="cancel-btn" onclick="closeModal()">रद्द करा</button>
+                        <button class="save-btn" onclick="saveCarEdit(${id})">सेव करा</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function closeModal() {
+            const modal = document.querySelector('.modal');
+            if (modal) modal.remove();
+        }
+
+        async function saveCarEdit(id) {
+            const name = document.getElementById('editCarName').value;
+            const price = document.getElementById('editCarPrice').value;
+            const mobile = document.getElementById('editCarMobile').value;
+            const photoInput = document.getElementById('photoUpload');
+            
+            if (!name || !price) {
+                showToast('कृपया नाव आणि किंमत भरा!', 'error');
+                return;
+            }
+            
+            showLoading();
+            try {
+                // Upload photo if selected
+                if (photoInput.files && photoInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('photo', photoInput.files[0]);
+                    
+                    const uploadResponse = await fetch(`${API_URL}/api/admin/cars/${id}/upload`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        const err = await uploadResponse.json();
+                        showToast('फोटो अपलोड अयशस्वी: ' + (err.error || 'Unknown error'), 'error');
+                        hideLoading();
+                        return;
+                    }
+                }
+                
+                // Update car details
+                const response = await fetch(`${API_URL}/api/admin/cars/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, price, mobile })
+                });
+                
+                if (response.ok) {
+                    closeModal();
+                    await loadData();
+                    showToast('गाडी सफलतापूर्वक बदलली!');
+                } else {
+                    const err = await response.json();
+                    showToast(err.error || 'एरर आली', 'error');
+                }
+            } catch (err) {
+                showToast('नेटवर्क एरर: ' + err.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function resetData() {
+            if (confirm('तुम्ही खात्री करा की तुम्हाला सर्व डेटा रीसेट करायचा आहे?')) {
+                showLoading();
+                try {
+                    const response = await fetch(`${API_URL}/api/admin/reset`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        await loadData();
+                        showToast('डेटा रीसेट झाला!');
+                    } else {
+                        const err = await response.json();
+                        showToast(err.error || 'एरर आली', 'error');
+                    }
+                } catch (err) {
+                    showToast('नेटवर्क एरर: ' + err.message, 'error');
+                } finally {
+                    hideLoading();
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            window.location.href = 'admin-login.html';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#e74c3c' : '#2ecc71';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Close modal on outside click
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
