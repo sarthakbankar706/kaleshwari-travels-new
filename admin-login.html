@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - काळेश्वरी ट्रॅव्हलर</title>
+    <meta name="google-site-verification" content="8CN0BITb7EebMXAO0siIcyjZEMgw6W17JQKE0krvEEk" />
+    <link rel="stylesheet" href="admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-box {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .login-box h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #e63946;
+        }
+        .login-box .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        .login-box .form-group input:focus {
+            outline: none;
+            border-color: #e63946;
+        }
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #e63946 0%, #ff6b6b 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .login-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(230, 57, 70, 0.4);
+        }
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .back-home {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #457b9d;
+            text-decoration: none;
+        }
+        .back-home:hover {
+            color: #e63946;
+        }
+        .error-msg {
+            color: #e74c3c;
+            text-align: center;
+            margin-bottom: 15px;
+            display: none;
+            padding: 10px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 8px;
+            word-break: break-word;
+        }
+        .success-msg {
+            color: #2ecc71;
+            text-align: center;
+            margin-bottom: 15px;
+            display: none;
+            padding: 10px;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+        }
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loader i {
+            font-size: 2rem;
+            color: #e63946;
+            animation: spin 1s linear infinite;
+        }
+        .debug-info {
+            color: #aaa;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1><i class="fas fa-user-shield"></i> Admin Login</h1>
+            <p class="error-msg" id="errorMsg"></p>
+            <p class="success-msg" id="successMsg"></p>
+            <div class="loader" id="loader">
+                <i class="fas fa-spinner"></i>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>युजरनेम</label>
+                    <input type="text" id="username" placeholder="admin" value="admin" required>
+                </div>
+                <div class="form-group">
+                    <label>पासवर्ड</label>
+                    <input type="password" id="password" placeholder="admin123" value="admin123" required>
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">लॉग इन करा</button>
+            </form>
+            <a href="index.html" class="back-home"><i class="fas fa-home"></i> होमपेज वर जा</a>
+            <p class="debug-info" id="debugInfo"></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        
+        // Redirect to admin panel if already logged in
+        if (localStorage.getItem('adminToken')) {
+            window.location.href = 'admin.html';
+        }
+        
+        document.getElementById('debugInfo').textContent = `URL: ${API_URL}/api/admin/login`;
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            const loader = document.getElementById('loader');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            loader.style.display = 'block';
+            loginBtn.disabled = true;
+            
+            const loginUrl = `${API_URL}/api/admin/login`;
+            console.log('Login URL:', loginUrl);
+            
+            try {
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                const responseText = await response.text();
+                console.log('Response body:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    throw new Error(`Server returned invalid JSON: ${responseText.substring(0, 100)}`);
+                }
+                
+                if (response.ok) {
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminUser', data.username);
+                    successMsg.textContent = '✅ लॉगिन सफल! रीडायरेक्ट होत आहे...';
+                    successMsg.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 500);
+                } else {
+                    errorMsg.textContent = data.error || 'चुकीचे युजरनेम किंवा पासवर्ड';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                errorMsg.textContent = '❌ एरर: ' + err.message;
+                errorMsg.style.display = 'block';
+            }
+            
+            loader.style.display = 'none';
+            loginBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
